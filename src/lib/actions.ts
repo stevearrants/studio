@@ -10,19 +10,22 @@ interface CheckTextResult {
 
 export async function checkTextAction(
   inputText: string,
-  selectedRules: string[]
+  selectedRules: string[],
+  customStyleGuideText: string | null
 ): Promise<CheckTextResult> {
   if (!inputText.trim()) {
     return { suggestions: [], error: null };
   }
-  if (selectedRules.length === 0) {
-    return { suggestions: null, error: "Please select at least one style rule." };
+  // It's okay if no specific rules are selected if a custom style guide is provided.
+  if (selectedRules.length === 0 && !customStyleGuideText) {
+    return { suggestions: null, error: "Please select at least one style rule or upload a custom style guide." };
   }
 
   const input: StyleCheckInput = {
     text: inputText,
-    styleGuide: "Custom StyleWright Guide", // Generic name for the dynamically formed guide
+    styleGuide: "Custom StyleWright Guide", 
     rules: selectedRules,
+    customStyleGuideText: customStyleGuideText ?? undefined,
   };
 
   try {

@@ -7,7 +7,6 @@ import { ControlsAndSuggestionsPanel } from "@/components/stylewright/ControlsAn
 import { checkTextAction } from "@/lib/actions";
 import type { StyleRule, Suggestion } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { Separator } from "@/components/ui/separator";
 
 const predefinedStyleRules: StyleRule[] = [
   { id: "active-voice", label: "Use active voice", description: "Prefer active voice over passive voice for clarity and directness.", defaultChecked: true },
@@ -29,9 +28,10 @@ export default function StyleWrightPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [customStyleGuideText, setCustomStyleGuideText] = useState<string | null>(null);
+  const [customStyleGuideName, setCustomStyleGuideName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Set default checked rules
     const defaultSelected = predefinedStyleRules
       .filter(rule => rule.defaultChecked)
       .map(rule => rule.id);
@@ -48,11 +48,39 @@ export default function StyleWrightPage() {
     );
   }, []);
 
-  const handleCheckText = useCallback(async () => {
-    if (selectedRules.length === 0) {
+  const handleUploadCustomStyleGuide = useCallback((file: File) => {
+    if (file.type === "text/plain" || file.type === "text/markdown" || file.type === "application/octet-stream" || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const fileText = e.target?.result as string;
+        setCustomStyleGuideText(fileText);
+        setCustomStyleGuideName(file.name);
+        toast({ title: "Custom style guide loaded successfully.", description: `Using ${file.name}.` });
+      };
+      reader.onerror = () => {
+        toast({ title: "Error reading style guide file.", variant: "destructive" });
+      }
+      reader.readAsText(file);
+    } else {
       toast({
-        title: "No rules selected",
-        description: "Please select at least one style rule to check against.",
+        title: "Invalid file type for style guide.",
+        description: "Please upload a .txt or .md file.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const handleRemoveCustomStyleGuide = useCallback(() => {
+    setCustomStyleGuideText(null);
+    setCustomStyleGuideName(null);
+    toast({ description: "Custom style guide removed." });
+  }, [toast]);
+
+  const handleCheckText = useCallback(async () => {
+    if (selectedRules.length === 0 && !customStyleGuideText) {
+      toast({
+        title: "No rules or custom guide",
+        description: "Please select at least one style rule or upload a custom style guide.",
         variant: "destructive",
       });
       return;
@@ -68,13 +96,13 @@ export default function StyleWrightPage() {
 
     setIsLoading(true);
     setError(null);
-    setSuggestions([]); // Clear previous suggestions
+    setSuggestions([]);
 
     const activeRuleLabels = predefinedStyleRules
       .filter(rule => selectedRules.includes(rule.id))
-      .map(rule => rule.label); // Pass rule labels/descriptions to AI
+      .map(rule => rule.label);
 
-    const result = await checkTextAction(text, activeRuleLabels);
+    const result = await checkTextAction(text, activeRuleLabels, customStyleGuideText);
     
     if (result.error) {
       setError(result.error);
@@ -89,18 +117,18 @@ export default function StyleWrightPage() {
         toast({
           title: "Suggestions Ready",
           description: `Found ${result.suggestions.length} suggestion(s).`,
-          variant: "default", // Use accent color for success
+          variant: "default",
         });
       } else {
          toast({
           title: "All Clear!",
-          description: "No suggestions found based on the selected rules.",
+          description: "No suggestions found based on the current criteria.",
           variant: "default",
         });
       }
     }
     setIsLoading(false);
-  }, [text, selectedRules, toast]);
+  }, [text, selectedRules, customStyleGuideText, toast]);
 
   const handleDismissSuggestion = useCallback((suggestionId: string) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
@@ -112,7 +140,6 @@ export default function StyleWrightPage() {
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center space-x-4 px-4 sm:justify-between sm:space-x-0">
           <Logo />
-          {/* Future: Add navigation or user profile icon here */}
         </div>
       </header>
 
@@ -128,6 +155,9 @@ export default function StyleWrightPage() {
             isLoading={isLoading}
             error={error}
             onDismissSuggestion={handleDismissSuggestion}
+            customStyleGuideName={customStyleGuideName}
+            onUploadCustomStyleGuide={handleUploadCustomStyleGuide}
+            onRemoveCustomStyleGuide={handleRemoveCustomStyleGuide}
           />
         </div>
       </main>
