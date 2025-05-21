@@ -1,0 +1,41 @@
+# This is a placeholder Vale rule file: general.yml
+# You can define your general writing style rules here.
+# Example: Check for passive voice (this is a simplified example)
+
+StylesPath: styles
+MinAlertLevel: suggestion # suggestion, warning, or error
+
+extends:
+  - existence
+  - repetition
+  - substitution
+  - conditional
+
+# Rule: Check for passive voice
+Microsoft.PassiveVoice:
+  description: "Avoid passive voice where active voice is clearer."
+  level: suggestion
+  message: "Consider rephrasing “%s” in an active voice."
+  tokens:
+    - 'is \w+ed by'
+    - 'are \w+ed by'
+    - 'was \w+ed by'
+    - 'were \w+ed by'
+    - 'has been \w+ed by'
+    - 'have been \w+ed by'
+    - 'had been \w+ed by'
+    - 'will be \w+ed by'
+
+# Rule: Avoid "utilize"
+Vocabulary.Utilize:
+  description: "Prefer 'use' over 'utilize'."
+  level: suggestion
+  message: "Consider replacing 'utilize' with 'use'."
+  replace:
+    utilize: use
+    utilizes: uses
+    utilized: used
+    utilizing: using
+  # Use a non-existent class so Vale doesn't complain if `extends` is missing top-level
+  # For actual Vale usage, you'd typically extend existing styles.
+  extends: []
