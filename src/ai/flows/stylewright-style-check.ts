@@ -32,17 +32,24 @@ const StyleCheckOutputSchema = z.object({
 });
 export type StyleCheckOutput = z.infer<typeof StyleCheckOutputSchema>;
 
+// Define a new schema for the prompt's direct input
+const StyleCheckPromptInputSchema = StyleCheckInputSchema.extend({
+  isStyleGuideCheckMode: z.boolean().describe("True if style guide check mode is active, false if only spell/grammar is active."),
+});
+type StyleCheckPromptInput = z.infer<typeof StyleCheckPromptInputSchema>;
+
+
 export async function styleCheck(input: StyleCheckInput): Promise<StyleCheckOutput> {
   return styleCheckFlow(input);
 }
 
 const prompt = ai.definePrompt({
   name: 'styleCheckPrompt',
-  input: {schema: StyleCheckInputSchema},
+  input: {schema: StyleCheckPromptInputSchema}, // Use the extended schema here
   output: {schema: StyleCheckOutputSchema},
   prompt: `You are a helpful writing assistant.
 
-{{#if (eq checkMode "style_guide_check")}}
+{{#if isStyleGuideCheckMode}}
 Your task is to:
 1. Thoroughly check the following text for spelling mistakes and grammatical errors.
 2. Check the text against the provided style guide (which is in Markdown format).
@@ -73,12 +80,19 @@ Respond with an array of suggestion objects, each containing 'suggestionText' an
 const styleCheckFlow = ai.defineFlow(
   {
     name: 'styleCheckFlow',
-    inputSchema: StyleCheckInputSchema,
+    inputSchema: StyleCheckInputSchema, // External input schema for the flow
     outputSchema: StyleCheckOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (flowInput: StyleCheckInput): Promise<StyleCheckOutput> => {
+    // Transform the flow input to match the prompt's input schema
+    const promptInput: StyleCheckPromptInput = {
+      ...flowInput,
+      isStyleGuideCheckMode: flowInput.checkMode === 'style_guide_check',
+    };
+    
+    const {output} = await prompt(promptInput);
     // Ensure output is not null and suggestions is an array, even if empty
     return output ?? { suggestions: [] };
   }
 );
+
