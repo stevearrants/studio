@@ -20,7 +20,13 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type === "text/plain" || file.type === "text/markdown") {
+      if (
+        file.type === "text/plain" ||
+        file.type === "text/markdown" ||
+        file.type === "application/octet-stream" || // Added for robustness
+        file.name.endsWith(".md") ||
+        file.name.endsWith(".txt")
+      ) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const fileText = e.target?.result as string;
@@ -74,7 +80,7 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept=".txt,.md,text/plain,text/markdown"
+          accept=".txt,.md,text/plain,text/markdown,application/octet-stream" // Made consistent with style guide uploader
           className="hidden"
         />
       </CardContent>
