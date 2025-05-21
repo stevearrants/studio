@@ -1,60 +1,36 @@
+
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Logo } from "@/components/stylewright/Logo";
 import { EditorPanel } from "@/components/stylewright/EditorPanel";
 import { ControlsAndSuggestionsPanel } from "@/components/stylewright/ControlsAndSuggestionsPanel";
 import { checkTextAction } from "@/lib/actions";
-import type { StyleRule, Suggestion } from "@/types";
+import type { Suggestion } from "@/types"; // StyleRule removed as it's no longer used here
 import { useToast } from "@/hooks/use-toast";
 
-const predefinedStyleRules: StyleRule[] = [
-  { id: "active-voice", label: "Use active voice", description: "Prefer active voice over passive voice for clarity and directness.", defaultChecked: true },
-  { id: "simple-words", label: "Prefer simple words", description: "Avoid complex jargon; e.g., use 'use' instead of 'utilize'.", defaultChecked: true },
-  { id: "oxford-comma", label: "Use Oxford comma", description: "Ensure consistent use of serial (Oxford) commas.", defaultChecked: false },
-  { id: "numbers-usage", label: "Spell out numbers 1-9", description: "Spell out numbers one through nine; use numerals for 10 and above.", defaultChecked: true },
-  { id: "avoid-cliches", label: "Avoid clichés", description: "Refrain from using clichés and overused phrases for more original writing.", defaultChecked: false },
-  { id: "grammar-check", label: "Check grammar", description: "Identify common grammatical errors like subject-verb agreement, pronoun consistency.", defaultChecked: true },
-  { id: "spelling-check", label: "Check spelling", description: "Ensure correct spelling throughout the text.", defaultChecked: true },
-  { id: "conciseness", label: "Be concise", description: "Eliminate wordiness and redundant phrases.", defaultChecked: true },
-  { id: "consistent-tense", label: "Consistent tense", description: "Maintain consistent verb tenses throughout your writing.", defaultChecked: true },
-];
-
+// predefinedStyleRules is removed as the configuration area is being removed.
 
 export default function StyleWrightPage() {
   const [text, setText] = useState<string>("");
-  const [selectedRules, setSelectedRules] = useState<string[]>([]);
+  // selectedRules state and its initialization logic are removed.
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [customStyleGuideContent, setCustomStyleGuideContent] = useState<string | null>(null);
+  const [customStyleGuideName, setCustomStyleGuideName] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const defaultSelected = predefinedStyleRules
-      .filter(rule => rule.defaultChecked)
-      .map(rule => rule.id);
-    setSelectedRules(defaultSelected);
-  }, []);
+  // useEffect for defaultSelected rules is removed.
 
   const handleTextChange = useCallback((newText: string) => {
     setText(newText);
   }, []);
 
-  const handleSelectedRulesChange = useCallback((ruleId: string, checked: boolean) => {
-    setSelectedRules((prev) =>
-      checked ? [...prev, ruleId] : prev.filter((id) => id !== ruleId)
-    );
-  }, []);
+  // handleSelectedRulesChange is removed.
 
   const handleCheckText = useCallback(async () => {
-    if (selectedRules.length === 0) {
-      toast({
-        title: "No rules selected",
-        description: "Please select at least one style area to focus on.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Check for selectedRules.length is removed as rules are no longer user-selectable.
     if (!text.trim()) {
        toast({
         title: "No text provided",
@@ -68,12 +44,9 @@ export default function StyleWrightPage() {
     setError(null);
     setSuggestions([]);
 
-    const activeRuleLabels = predefinedStyleRules
-      .filter(rule => selectedRules.includes(rule.id))
-      .map(rule => rule.label);
-
-    // Pass only text and activeRuleLabels, customStyleGuideText is handled by the action internally
-    const result = await checkTextAction(text, activeRuleLabels); 
+    // activeRuleLabels will now be an empty array as specific rules are not selected by the user.
+    // The AI flow is designed to use the entire embedded style guide if no specific rules are passed.
+    const result = await checkTextAction(text, [], customStyleGuideContent); 
     
     if (result.error) {
       setError(result.error);
@@ -99,12 +72,33 @@ export default function StyleWrightPage() {
       }
     }
     setIsLoading(false);
-  }, [text, selectedRules, toast]);
+  }, [text, customStyleGuideContent, toast]);
 
   const handleDismissSuggestion = useCallback((suggestionId: string) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
     toast({ description: "Suggestion dismissed." });
   }, [toast]);
+
+  const handleUploadCustomStyleGuide = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const fileText = e.target?.result as string;
+      setCustomStyleGuideContent(fileText);
+      setCustomStyleGuideName(file.name);
+      toast({ title: "Custom style guide uploaded.", description: file.name });
+    };
+    reader.onerror = () => {
+      toast({ title: "Error reading style guide file.", variant: "destructive" });
+    };
+    reader.readAsText(file);
+  }, [toast]);
+
+  const handleRemoveCustomStyleGuide = useCallback(() => {
+    setCustomStyleGuideContent(null);
+    setCustomStyleGuideName(null);
+    toast({ description: "Custom style guide removed. Using default guide." });
+  }, [toast]);
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -118,15 +112,15 @@ export default function StyleWrightPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
           <EditorPanel text={text} onTextChange={handleTextChange} />
           <ControlsAndSuggestionsPanel
-            styleRules={predefinedStyleRules}
-            selectedRules={selectedRules}
-            onSelectedRulesChange={handleSelectedRulesChange}
+            // Props related to styleRules and selectedRules are removed
             onCheckText={handleCheckText}
             suggestions={suggestions}
             isLoading={isLoading}
             error={error}
             onDismissSuggestion={handleDismissSuggestion}
-            // Removed props related to custom style guides
+            customStyleGuideName={customStyleGuideName}
+            onUploadCustomStyleGuide={handleUploadCustomStyleGuide}
+            onRemoveCustomStyleGuide={handleRemoveCustomStyleGuide}
           />
         </div>
       </main>

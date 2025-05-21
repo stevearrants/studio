@@ -1,87 +1,120 @@
+
 "use client";
 
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+// Checkbox, Label, and StyleRule type import are removed
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react"; // Removed Upload, XCircle, FileText
-import type { StyleRule, Suggestion } from "@/types";
+import { Loader2, AlertCircle, CheckCircle2, Upload, XCircle, FileText } from "lucide-react"; 
+import type { Suggestion } from "@/types"; // StyleRule removed
 import { SuggestionItem } from "./SuggestionItem";
 import { Separator } from "@/components/ui/separator";
-// Removed useToast as it's not directly used here for custom guide uploads anymore
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 
 interface ControlsAndSuggestionsPanelProps {
-  styleRules: StyleRule[];
-  selectedRules: string[];
-  onSelectedRulesChange: (ruleId: string, checked: boolean) => void;
+  // Props related to styleRules and selectedRules are removed:
+  // styleRules: StyleRule[];
+  // selectedRules: string[];
+  // onSelectedRulesChange: (ruleId: string, checked: boolean) => void;
   onCheckText: () => Promise<void>;
   suggestions: Suggestion[];
   isLoading: boolean;
   error: string | null;
   onDismissSuggestion: (suggestionId: string) => void;
-  // Removed props related to custom style guides:
-  // customStyleGuideName: string | null;
-  // onUploadCustomStyleGuide: (file: File) => void;
-  // onRemoveCustomStyleGuide: () => void;
+  customStyleGuideName: string | null;
+  onUploadCustomStyleGuide: (file: File) => void;
+  onRemoveCustomStyleGuide: () => void;
 }
 
 export function ControlsAndSuggestionsPanel({
-  styleRules,
-  selectedRules,
-  onSelectedRulesChange,
+  // Destructured props related to styleRules and selectedRules are removed
   onCheckText,
   suggestions,
   isLoading,
   error,
   onDismissSuggestion,
+  customStyleGuideName,
+  onUploadCustomStyleGuide,
+  onRemoveCustomStyleGuide,
 }: ControlsAndSuggestionsPanelProps) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (
+        file.type === "text/plain" ||
+        file.type === "text/markdown" ||
+        file.name.endsWith(".md") ||
+        file.name.endsWith(".txt") ||
+        file.type === "" // Allow files with no specific MIME type (often .md)
+      ) {
+        onUploadCustomStyleGuide(file);
+      } else {
+        toast({
+          title: "Invalid file type for style guide.",
+          description: "Please upload a .txt or .md file.",
+          variant: "destructive",
+        });
+      }
+    }
+     // Reset file input to allow uploading the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
   
-  const canCheckText = selectedRules.length > 0;
+  // canCheckText logic is simplified as selectedRules are removed.
+  // The button can be enabled as long as text is present (checked in parent).
+  const canCheckText = true; 
 
   return (
     <div className="space-y-6">
+      {/* The entire Card for "Style Configuration" is removed */}
+
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-xl">Style Configuration</CardTitle>
+          <CardTitle className="text-xl">Custom Style Guide (Optional)</CardTitle>
           <CardDescription>
-            Select areas of focus from our built-in style guide below.
+            Upload your own .txt or .md style guide to tailor checks.
+            If no custom guide is uploaded, the application's default style guide will be used.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Removed custom style guide upload UI */}
-          {/* <Separator /> */}
-          <ScrollArea className="h-[250px] pr-3"> {/* Adjusted height as custom upload is removed */}
-            <div className="space-y-3">
-              {styleRules.map((rule) => (
-                <div key={rule.id} className="flex items-start space-x-2">
-                  <Checkbox
-                    id={rule.id}
-                    checked={selectedRules.includes(rule.id)}
-                    onCheckedChange={(checked) =>
-                      onSelectedRulesChange(rule.id, !!checked)
-                    }
-                    aria-labelledby={`${rule.id}-label`}
-                  />
-                  <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor={rule.id} id={`${rule.id}-label`} className="font-medium cursor-pointer">
-                      {rule.label}
-                    </Label>
-                    {rule.description && (
-                      <p className="text-xs text-muted-foreground">
-                        {rule.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+          {customStyleGuideName ? (
+            <div className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <span className="text-sm font-medium">{customStyleGuideName}</span>
+              </div>
+              <Button variant="ghost" size="icon" onClick={onRemoveCustomStyleGuide} aria-label="Remove custom style guide">
+                <XCircle className="h-5 w-5 text-destructive" />
+              </Button>
             </div>
-          </ScrollArea>
+          ) : (
+            <Button onClick={handleUploadClick} variant="outline" className="w-full">
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Style Guide
+            </Button>
+          )}
+          <Input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".txt,.md,text/plain,text/markdown"
+            className="hidden"
+          />
         </CardContent>
       </Card>
-
+      
       <Button onClick={onCheckText} disabled={isLoading || !canCheckText} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
         {isLoading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
