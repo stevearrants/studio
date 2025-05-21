@@ -24,13 +24,10 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
       if (
         file.type === "text/plain" ||
         file.type === "text/markdown" ||
-        file.type === "application/x-yaml" ||
-        file.type === "text/yaml" ||
-        file.type === "application/octet-stream" || // For robustness
-        file.name.endsWith(".md") ||
         file.name.endsWith(".txt") ||
-        file.name.endsWith(".yml") ||
-        file.name.endsWith(".yaml")
+        file.name.endsWith(".md") ||
+        // Fallback for when browser doesn't set type correctly but extension is .txt or .md
+        (file.type === "application/octet-stream" && (file.name.endsWith(".txt") || file.name.endsWith(".md")))
       ) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -45,7 +42,7 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
       } else {
         toast({
           title: "Invalid file type.",
-          description: "Please upload a .txt, .md, or .yaml/.yml file.",
+          description: "Please upload a .txt or .md file.",
           variant: "destructive",
         });
       }
@@ -79,13 +76,13 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
         </div>
         <Button onClick={handleUploadClick} variant="outline" className="w-full sm:w-auto">
           <Upload className="mr-2 h-4 w-4" />
-          Upload File (.txt, .md, .yml, .yaml)
+          Upload File (.txt, .md)
         </Button>
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept=".txt,.md,.yml,.yaml,text/plain,text/markdown,application/x-yaml,text/yaml,application/octet-stream"
+          accept=".txt,.md,text/plain,text/markdown,application/octet-stream"
           className="hidden"
         />
       </CardContent>

@@ -40,23 +40,19 @@ export function ControlsAndSuggestionsPanel({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Accept .txt, .md, .yml, .yaml. Content should be Vale-compatible YAML.
       if (
-        file.name.endsWith(".yml") ||
-        file.name.endsWith(".yaml") ||
         file.name.endsWith(".txt") ||
         file.name.endsWith(".md") ||
-        file.type === "application/x-yaml" || 
-        file.type === "text/yaml" ||
-        file.type === "text/plain" || // Allow text/plain for .txt or .md containing YAML
-        file.type === "text/markdown" || // Allow text/markdown for .md containing YAML
-        file.type === "application/octet-stream" // Fallback for unknown types
+        file.type === "text/plain" ||
+        file.type === "text/markdown" ||
+        // Fallback for when browser doesn't set type correctly but extension is .txt or .md
+        (file.type === "application/octet-stream" && (file.name.endsWith(".txt") || file.name.endsWith(".md")))
       ) {
         onUploadCustomStyleGuide(file);
       } else {
         toast({
           title: "Invalid file type for Vale style guide.",
-          description: "Please upload a .txt, .md, .yml, or .yaml file with Vale-compatible YAML content.",
+          description: "Please upload a .txt or .md file with Vale-compatible YAML content.",
           variant: "destructive",
         });
       }
@@ -78,8 +74,8 @@ export function ControlsAndSuggestionsPanel({
         <CardHeader>
           <CardTitle className="text-xl">Custom Vale Style Guide (Optional)</CardTitle>
           <CardDescription>
-            Upload your own Vale-compatible style guide (as a .txt, .md, .yml, or .yaml file).
-            The content must be YAML. If no custom guide is uploaded, the default embedded Vale guide is used.
+            Upload your own Vale-compatible style guide (as a .txt or .md file).
+            The content of the file must be YAML. If no custom guide is uploaded, the default embedded Vale guide is used.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -96,14 +92,14 @@ export function ControlsAndSuggestionsPanel({
           ) : (
             <Button onClick={handleUploadClick} variant="outline" className="w-full">
               <Upload className="mr-2 h-4 w-4" />
-              Upload Vale Guide (.txt, .md, .yml, .yaml)
+              Upload Vale Guide (.txt, .md)
             </Button>
           )}
           <Input
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept=".txt,.md,.yml,.yaml,text/plain,text/markdown,application/x-yaml,text/yaml,application/octet-stream"
+            accept=".txt,.md,text/plain,text/markdown,application/octet-stream"
             className="hidden"
           />
         </CardContent>
