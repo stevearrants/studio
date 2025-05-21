@@ -77,9 +77,13 @@ export default function StyleWrightPage() {
 
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
-          <EditorPanel text={text} onTextChange={handleTextChange} />
-          <ControlsAndSuggestionsPanel
+          <EditorPanel
+            text={text}
+            onTextChange={handleTextChange}
             onCheckText={handleCheckText}
+            isLoading={isLoading}
+          />
+          <ControlsAndSuggestionsPanel
             suggestions={suggestions}
             isLoading={isLoading}
             error={error}

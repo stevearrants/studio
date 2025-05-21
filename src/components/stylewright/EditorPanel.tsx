@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useRef } from "react"; // Added React import
-import { Upload } from "lucide-react";
+import React, { useRef } from "react";
+import { Upload, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 interface EditorPanelProps {
   text: string;
   onTextChange: (text: string) => void;
+  onCheckText: () => Promise<void>;
+  isLoading: boolean;
 }
 
-export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
+export function EditorPanel({ text, onTextChange, onCheckText, isLoading }: EditorPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -66,10 +68,20 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
             className="min-h-[300px] text-base resize-y"
           />
         </div>
-        <Button onClick={handleUploadClick} variant="outline" className="w-full sm:w-auto">
-          <Upload className="mr-2 h-4 w-4" />
-          Upload File (.txt, .md)
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={handleUploadClick} variant="outline" className="w-full sm:w-auto">
+            <Upload className="mr-2 h-4 w-4" />
+            Upload File (.txt, .md)
+          </Button>
+          <Button onClick={onCheckText} disabled={isLoading} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+            )}
+            Check Text
+          </Button>
+        </div>
         <input
           type="file"
           ref={fileInputRef}
