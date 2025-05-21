@@ -80,11 +80,6 @@ export default function StyleWrightPage() {
       if (index !== -1) {
         textareaRef.current.focus();
         textareaRef.current.setSelectionRange(index, index + offendingText.length);
-        // Optional: try to scroll with scrollTop if selection doesn't always do it.
-        // This is less reliable than focus + setSelectionRange for bringing into view.
-        // const lineHeight = 20; // Approximate line height
-        // const jump = Math.floor(index / (textareaRef.current.cols || 80)) * lineHeight;
-        // textareaRef.current.scrollTop = jump;
       } else {
         toast({
           title: "Text not found",

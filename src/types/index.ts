@@ -9,5 +9,5 @@ export interface StyleRule {
 export interface Suggestion {
   id: string;
   text: string;
-  offendingText?: string; // Added to store the specific text snippet
+  offendingText?: string; // Ensures this field is available for the specific text snippet
 }

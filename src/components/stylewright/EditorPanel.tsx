@@ -14,7 +14,6 @@ interface EditorPanelProps {
   onTextChange: (text: string) => void;
   onCheckText: () => Promise<void>;
   isLoading: boolean;
-  forwardedRef?: React.Ref<HTMLTextAreaElement>; // For forwarding the ref
 }
 
 const EditorPanel = React.forwardRef<HTMLTextAreaElement, EditorPanelProps>(
@@ -47,6 +46,7 @@ const EditorPanel = React.forwardRef<HTMLTextAreaElement, EditorPanelProps>(
           });
         }
       }
+      // Reset file input to allow uploading the same file again
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }

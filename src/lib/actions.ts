@@ -16,13 +16,24 @@ async function getEmbeddedStyleGuide(): Promise<string> {
 
   try {
     const fileContent = await fs.readFile(styleGuidePath, 'utf-8');
+    if (!fileContent.trim()) {
+      return "The embedded style guide file ('src/ai/styleguides/default-style-guide.md') is empty. Please add your style rules to this file. General spelling and grammar checks will still be performed.";
+    }
     return fileContent;
   } catch (error) {
-    if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
-      console.warn(`Style guide file not found: ${styleGuidePath}. A default message will be used.`);
-      return "The embedded style guide file ('src/ai/styleguides/default-style-guide.md') was not found. Please create this file with your style rules. General spelling and grammar checks will still be performed.";
+    const nodeError = error as NodeJS.ErrnoException;
+    if (nodeError.code === 'ENOENT') {
+      console.warn(`Style guide file not found: ${styleGuidePath}. Attempting to create it.`);
+      try {
+        await fs.mkdir(path.dirname(styleGuidePath), { recursive: true });
+        await fs.writeFile(styleGuidePath, '# Your Style Guide\n\nStart adding your Markdown-based style rules here.\n');
+        return "The embedded style guide file was not found, so a default one has been created at 'src/ai/styleguides/default-style-guide.md'. Please add your style rules to this file. For now, general spelling and grammar checks will be performed.";
+      } catch (creationError) {
+        console.error(`Error creating default style guide file at ${styleGuidePath}:`, creationError);
+        return `Error: The style guide file was not found at ${styleGuidePath}, and an attempt to create it failed. Please check file permissions and ensure the directory structure is valid. General spelling and grammar checks will still be performed.`;
+      }
     }
-    console.error("Error reading embedded style guide file:", error);
+    console.error(`Error reading embedded style guide file at ${styleGuidePath}:`, error);
     return "Error loading the embedded style guide. Please check the server logs. General spelling and grammar checks will still be performed.";
   }
 }
@@ -47,7 +58,7 @@ export async function checkTextAction(
     const suggestions: Suggestion[] = result.suggestions.map((item, index) => ({
       id: `suggestion-${Date.now()}-${index}`,
       text: item.suggestionText,
-      offendingText: item.offendingText,
+      offendingText: item.offendingText, // This maps the offendingText
     }));
     return { suggestions, error: null };
   } catch (e) {

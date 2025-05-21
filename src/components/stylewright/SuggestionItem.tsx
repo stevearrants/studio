@@ -29,10 +29,17 @@ export function SuggestionItem({ suggestion, onDismiss, onClick }: SuggestionIte
       }}
       tabIndex={onClick ? 0 : -1} // Make it focusable if clickable
       role={onClick ? "button" : undefined}
-      aria-pressed={onClick ? false : undefined} // Semantics for a button-like card
+      aria-pressed={onClick ? "false" : undefined} // Semantics for a button-like card
     >
       <CardContent className="p-4 flex items-start justify-between gap-4">
-        <p className="text-sm text-card-foreground flex-grow">{suggestion.text}</p>
+        <div className="flex-grow space-y-1">
+          <p className="text-sm text-card-foreground">{suggestion.text}</p>
+          {suggestion.offendingText && (
+             <p className="text-xs text-muted-foreground italic truncate">
+               Context: &ldquo;...{suggestion.offendingText.length > 50 ? suggestion.offendingText.substring(0, 47) + "..." : suggestion.offendingText}...&rdquo;
+             </p>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon"

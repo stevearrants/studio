@@ -21,7 +21,7 @@ export type StyleCheckInput = z.infer<typeof StyleCheckInputSchema>;
 
 const SuggestionSchema = z.object({
   suggestionText: z.string().describe('The suggestion for adhering to the style guide, or for correcting spelling/grammar. This should be a complete, actionable sentence.'),
-  offendingText: z.string().optional().describe('The exact text snippet from the input that this suggestion pertains to. Omit if the suggestion is general.'),
+  offendingText: z.string().optional().describe('The exact text snippet from the input that this suggestion pertains to. This MUST be an exact substring of the original input text. Omit if the suggestion is general.'),
 });
 
 const StyleCheckOutputSchema = z.object({

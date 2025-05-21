@@ -9,12 +9,13 @@ import { Loader2, AlertCircle } from "lucide-react";
 import type { Suggestion } from "@/types";
 import { SuggestionItem } from "./SuggestionItem";
 
+
 interface ControlsAndSuggestionsPanelProps {
   suggestions: Suggestion[];
   isLoading: boolean;
   error: string | null;
   onDismissSuggestion: (suggestionId: string) => void;
-  onSuggestionClick: (offendingText?: string) => void; // New prop
+  onSuggestionClick: (offendingText?: string) => void;
 }
 
 export function ControlsAndSuggestionsPanel({
@@ -22,7 +23,7 @@ export function ControlsAndSuggestionsPanel({
   isLoading,
   error,
   onDismissSuggestion,
-  onSuggestionClick, // New prop
+  onSuggestionClick,
 }: ControlsAndSuggestionsPanelProps) {
   return (
     <div className="space-y-6">
@@ -51,7 +52,7 @@ export function ControlsAndSuggestionsPanel({
             </p>
           )}
           {!isLoading && !error && suggestions.length > 0 && (
-            <ScrollArea className="h-[300px] sm:h-[350px] md:h-[400px] pr-1">
+            <ScrollArea className="h-[calc(20rem+10vh)] sm:h-[calc(20rem+15vh)] md:h-[calc(20rem+20vh)] pr-1"> {/* Adjusted height */}
               <div className="space-y-3">
                 {suggestions.map((suggestion) => (
                   <SuggestionItem
