@@ -22,13 +22,13 @@ export type StyleCheckInput = z.infer<typeof StyleCheckInputSchema>;
 
 const SuggestionSchema = z.object({
   suggestionText: z.string().describe('The suggestion for adhering to the style guide, or for correcting spelling/grammar. This should be a complete, actionable sentence.'),
-  offendingText: z.string().optional().describe('The exact text snippet from the input that this suggestion pertains to. This MUST be an exact substring of the original input text. Omit if the suggestion is general.'),
+  // offendingText is removed as per user request
 });
 
 const StyleCheckOutputSchema = z.object({
   suggestions: z
     .array(SuggestionSchema)
-    .describe('An array of suggestions. Each suggestion includes the actionable advice and optionally the specific text segment it refers to.'),
+    .describe('An array of suggestions. Each suggestion includes the actionable advice.'),
 });
 export type StyleCheckOutput = z.infer<typeof StyleCheckOutputSchema>;
 
@@ -54,7 +54,7 @@ Your task is to:
 1. Thoroughly check the following text for spelling mistakes and grammatical errors.
 2. Check the text against the provided style guide (which is in Markdown format).
 
-If the style guide context indicates that it could not be loaded (e.g., messages like "The embedded style guide file... was not found..." or "Error loading the embedded style guide..."), please state that you cannot perform a detailed style check due to a missing/invalid style guide in one of the suggestionText fields (without an offendingText), but still perform the spelling and grammar checks and offer general writing advice (e.g., check for clarity, conciseness). Do not attempt to interpret error messages as style rules.
+If the style guide context indicates that it could not be loaded (e.g., messages like "The embedded style guide file... was not found..." or "Error loading the embedded style guide..."), please state that you cannot perform a detailed style check due to a missing/invalid style guide in one of the suggestionText fields, but still perform the spelling and grammar checks and offer general writing advice (e.g., check for clarity, conciseness). Do not attempt to interpret error messages as style rules.
 
 Style Guide Context (Markdown) (This will be used for 'style_guide_check' mode):
 {{{styleGuideContext}}}
@@ -68,14 +68,13 @@ Your task is to:
 
 For each issue found, provide:
 - 'suggestionText': An actionable sentence detailing the suggestion. If in 'spell_grammar_only' mode, this should only be for spelling or grammar. If in 'style_guide_check' mode, it can also be for style guide adherence.
-- 'offendingText': The exact text snippet from the input that the suggestion directly pertains to. This MUST be an exact substring of the original input text. Omit if the suggestion is general or not applicable to a specific snippet.
 
 ---
 Text to check:
 {{{text}}}
 
 ---
-Respond with an array of suggestion objects, each containing 'suggestionText' and optionally 'offendingText'. If no issues are found, return an empty array for suggestions.`,
+Respond with an array of suggestion objects, each containing 'suggestionText'. If no issues are found, return an empty array for suggestions.`,
 });
 
 const styleCheckFlow = ai.defineFlow(
@@ -96,4 +95,3 @@ const styleCheckFlow = ai.defineFlow(
     return output ?? { suggestions: [] };
   }
 );
-
