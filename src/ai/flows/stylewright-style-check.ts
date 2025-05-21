@@ -61,8 +61,9 @@ Style Guide Context (Markdown) (This will be used for 'style_guide_check' mode):
 
 {{else}}
 Your task is to:
-1. Thoroughly check the following text *only* for spelling mistakes and grammatical errors.
-2. *Do not* perform any style guide checks or refer to any style guide context. Suggestions should be limited to spelling and grammar.
+1. Meticulously review the following text *solely* for errors in spelling and grammar.
+2. Your analysis *must not* include any style guide checks, nor should you make any reference to style guide content or principles.
+3. All suggestions you provide must be *strictly* confined to correcting spelling mistakes or grammatical inaccuracies. Do not suggest changes for style, tone, word choice (unless grammatically incorrect or misspelled), sentence structure (unless grammatically incorrect), or conciseness (unless it is a direct result of a grammatical error, such as a run-on sentence).
 {{/if}}
 
 For each issue found, provide:
