@@ -19,10 +19,15 @@ const StyleCheckInputSchema = z.object({
 });
 export type StyleCheckInput = z.infer<typeof StyleCheckInputSchema>;
 
+const SuggestionSchema = z.object({
+  suggestionText: z.string().describe('The suggestion for adhering to the style guide, or for correcting spelling/grammar. This should be a complete, actionable sentence.'),
+  offendingText: z.string().optional().describe('The exact text snippet from the input that this suggestion pertains to. Omit if the suggestion is general.'),
+});
+
 const StyleCheckOutputSchema = z.object({
   suggestions: z
-    .array(z.string())
-    .describe('An array of suggestions for adhering to the style guide, and for correcting spelling/grammar. Each suggestion should be a complete, actionable sentence.'),
+    .array(SuggestionSchema)
+    .describe('An array of suggestions. Each suggestion includes the actionable advice and optionally the specific text segment it refers to.'),
 });
 export type StyleCheckOutput = z.infer<typeof StyleCheckOutputSchema>;
 
@@ -38,9 +43,11 @@ const prompt = ai.definePrompt({
 1. Thoroughly check the following text for spelling mistakes and grammatical errors.
 2. Check the text against the provided Vale style guide rules.
 
-Provide suggestions for any issues found, covering spelling, grammar, and adherence to the style guide. Each suggestion should be an actionable sentence.
+For each issue found, provide:
+- 'suggestionText': An actionable sentence detailing the suggestion for spelling, grammar, or style guide adherence.
+- 'offendingText': The exact text snippet from the input that the suggestion directly pertains to. This MUST be an exact substring of the original input text. If the suggestion is general (e.g., "Consider improving overall clarity") and not tied to a specific snippet, you may omit the 'offendingText' field for that suggestion.
 
-If the style guide context indicates that no Vale rules were found (e.g., messages like "No Vale rule files found..." or "The Vale style guide directory... was missing...") or an error occurred loading them, please state that you cannot perform a detailed style check due to missing/invalid Vale rules, but still perform the spelling and grammar checks and offer general writing advice (e.g., check for clarity, conciseness). Do not attempt to interpret error messages as style rules.
+If the style guide context indicates that no Vale rules were found (e.g., messages like "No Vale rule files found..." or "The Vale style guide directory... was missing...") or an error occurred loading them, please state that you cannot perform a detailed style check due to missing/invalid Vale rules in one of the suggestionText fields (without an offendingText), but still perform the spelling and grammar checks and offer general writing advice (e.g., check for clarity, conciseness). Do not attempt to interpret error messages as style rules.
 
 Style Guide Context (Vale Rules):
 {{{styleGuideContext}}}
@@ -50,7 +57,7 @@ Text to check:
 {{{text}}}
 
 ---
-Suggestions (provide each suggestion as an actionable sentence):`,
+Respond with an array of suggestion objects, each containing 'suggestionText' and optionally 'offendingText'.`,
 });
 
 const styleCheckFlow = ai.defineFlow(

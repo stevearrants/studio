@@ -5,16 +5,16 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle } from "lucide-react"; 
+import { Loader2, AlertCircle } from "lucide-react";
 import type { Suggestion } from "@/types";
 import { SuggestionItem } from "./SuggestionItem";
-import { Separator } from "@/components/ui/separator";
 
 interface ControlsAndSuggestionsPanelProps {
   suggestions: Suggestion[];
   isLoading: boolean;
   error: string | null;
   onDismissSuggestion: (suggestionId: string) => void;
+  onSuggestionClick: (offendingText?: string) => void; // New prop
 }
 
 export function ControlsAndSuggestionsPanel({
@@ -22,19 +22,16 @@ export function ControlsAndSuggestionsPanel({
   isLoading,
   error,
   onDismissSuggestion,
+  onSuggestionClick, // New prop
 }: ControlsAndSuggestionsPanelProps) {
-  
   return (
     <div className="space-y-6">
-      {/* Separator can be removed if there's no control above it now, or kept for styling */}
-      {/* <Separator /> */} 
-
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl">Suggestions</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading && suggestions.length === 0 && ( // Show loading only if there are no suggestions yet
+          {isLoading && suggestions.length === 0 && (
             <div className="flex items-center justify-center p-8 text-muted-foreground">
               <Loader2 className="mr-2 h-6 w-6 animate-spin" />
               <span>Loading suggestions...</span>
@@ -48,8 +45,9 @@ export function ControlsAndSuggestionsPanel({
             </Alert>
           )}
           {!isLoading && !error && suggestions.length === 0 && (
-             <p className="text-sm text-center text-muted-foreground py-4">
-              No suggestions yet. Enter text and click "Check Text" to see suggestions.
+            <p className="text-sm text-center text-muted-foreground py-4">
+              No suggestions yet. Enter text and click "Check Text" to see
+              suggestions.
             </p>
           )}
           {!isLoading && !error && suggestions.length > 0 && (
@@ -60,6 +58,7 @@ export function ControlsAndSuggestionsPanel({
                     key={suggestion.id}
                     suggestion={suggestion}
                     onDismiss={onDismissSuggestion}
+                    onClick={suggestion.offendingText ? () => onSuggestionClick(suggestion.offendingText) : undefined}
                   />
                 ))}
               </div>

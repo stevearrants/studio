@@ -1,3 +1,4 @@
+
 export interface StyleRule {
   id: string;
   label: string;
@@ -8,4 +9,5 @@ export interface StyleRule {
 export interface Suggestion {
   id: string;
   text: string;
+  offendingText?: string; // Added to store the specific text snippet
 }
