@@ -12,40 +12,18 @@ interface CheckTextResult {
 }
 
 async function getEmbeddedStyleGuide(): Promise<string> {
-  const styleGuidesDir = path.join(process.cwd(), 'src', 'ai', 'styleguides', 'vale');
-  let combinedStyleGuideContent = "";
+  const styleGuidePath = path.join(process.cwd(), 'src', 'ai', 'styleguides', 'default-style-guide.md');
 
   try {
-    // Check if directory exists, create if not
-    try {
-      await fs.access(styleGuidesDir);
-    } catch (accessError) {
-       if (accessError instanceof Error && 'code' in accessError && (accessError as NodeJS.ErrnoException).code === 'ENOENT') {
-        await fs.mkdir(styleGuidesDir, { recursive: true });
-        console.log(`Created directory: ${styleGuidesDir}`);
-        return "The Vale style guide directory 'src/ai/styleguides/vale' was missing and has been created. Please add your .yml or .yaml rule files there.";
-      }
-      throw accessError; // Re-throw other access errors
-    }
-
-    const files = await fs.readdir(styleGuidesDir);
-    const yamlFiles = files.filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
-
-    if (yamlFiles.length === 0) {
-      return "No Vale rule files found in the 'src/ai/styleguides/vale' directory. Please add some .yml or .yaml rule files.";
-    }
-
-    for (const file of yamlFiles) {
-      const filePath = path.join(styleGuidesDir, file);
-      const fileContent = await fs.readFile(filePath, 'utf-8');
-      combinedStyleGuideContent += `--- START OF FILE: ${file} ---\n${fileContent}\n--- END OF FILE: ${file} ---\n\n`;
-    }
-    // Remove the last two newlines for cleaner concatenation if files were found
-    return combinedStyleGuideContent.trim();
-
+    const fileContent = await fs.readFile(styleGuidePath, 'utf-8');
+    return fileContent;
   } catch (error) {
-    console.error("Error reading Vale style guide directory:", error);
-    return "Error loading Vale style guides. Please check the server logs. As a fallback, general writing advice will be provided if possible.";
+    if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+      console.warn(`Style guide file not found: ${styleGuidePath}. A default message will be used.`);
+      return "The embedded style guide file ('src/ai/styleguides/default-style-guide.md') was not found. Please create this file with your style rules. General spelling and grammar checks will still be performed.";
+    }
+    console.error("Error reading embedded style guide file:", error);
+    return "Error loading the embedded style guide. Please check the server logs. General spelling and grammar checks will still be performed.";
   }
 }
 
