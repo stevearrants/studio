@@ -1,24 +1,28 @@
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow for checking text against the
- * application's embedded Vale-compatible YAML style guide.
+ * @fileOverview This file defines a Genkit flow for checking text against
+ * a general style guide (either custom uploaded or predefined rules).
  *
- * - styleCheck - A function that checks the input text against the style guide and returns suggestions.
+ * - styleCheck - A function that checks the input text and returns suggestions.
  * - StyleCheckInput - The input type for the styleCheck function.
  * - StyleCheckOutput - The return type for the styleCheck function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { StyleRule } from '@/types';
+
+const StyleRuleSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  description: z.string().optional(),
+  checked: z.boolean().optional().default(false), // Whether this rule is actively focused on
+});
 
 const StyleCheckInputSchema = z.object({
   text: z.string().describe('The text to be checked.'),
-  rules: z
-    .array(z.string())
-    .describe('An array of specific Vale rule keys (e.g., Vale.Repetition, MyStyle.PassiveVoice) to focus on. If empty, all rules in the style guide should be considered.'),
-  internalStyleGuideText: z
-    .string()
-    .describe('The full text content of the embedded style guide, formatted as Vale-compatible YAML.'),
+  rules: z.array(StyleRuleSchema).describe('An array of predefined style rules and their active status.'),
+  customStyleGuideText: z.string().nullable().describe('Optional custom style guide text provided by the user. If present, this takes precedence.'),
 });
 export type StyleCheckInput = z.infer<typeof StyleCheckInputSchema>;
 
@@ -37,24 +41,36 @@ const prompt = ai.definePrompt({
   name: 'styleCheckPrompt',
   input: {schema: StyleCheckInputSchema},
   output: {schema: StyleCheckOutputSchema},
-  prompt: `You are a style guide expert. Your task is to check the following text based on a set of Vale-compatible style rules provided in YAML format.
+  prompt: `You are a helpful writing assistant. Your task is to check the following text against a style guide.
 
 Text to check:
 {{{text}}}
 
---- Vale Style Guide (YAML Format) ---
-{{{internalStyleGuideText}}}
---- End Vale Style Guide ---
+--- Style Guide & Rules ---
+{{#if customStyleGuideText}}
+A custom style guide has been provided. Prioritize its rules.
+Custom Style Guide:
+{{{customStyleGuideText}}}
 
 {{#if rules.length}}
-Within the provided Vale style guide, pay special attention to these specific Vale rule keys: {{#each rules}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}.
-If no specific rule keys are listed, consider all rules defined in the Vale style guide.
-{{else}}
-Consider all rules defined in the Vale style guide.
+When considering the custom style guide, also be mindful of the following general aspects if the user has indicated them as areas of focus:
+{{#each rules}}
+{{#if this.checked}} - {{this.label}}{{#if this.description}} (Focus: {{this.description}}){{/if}}{{/if}}
+{{/each}}
 {{/if}}
 
-Interpret the Vale rules from the YAML and provide actionable suggestions to make the text compliant.
-Focus on concrete suggestions that can be implemented directly in the document. Ensure each suggestion is a complete, actionable sentence.
+{{else}}
+No custom style guide provided. Use the following predefined style rules.
+Predefined Style Rules:
+{{#each rules}}
+- {{this.label}}{{#if this.description}} ({{this.description}}){{/if}}. Focus on this rule: {{#if this.checked}}Yes{{else}}No{{/if}}.
+{{/each}}
+If a rule is not marked for focus, still consider it if relevant, but give more weight to focused rules.
+{{/if}}
+--- End Style Guide & Rules ---
+
+Based on the applicable style guide and the indicated focus areas, provide actionable suggestions to improve the text.
+Each suggestion should be a complete, actionable sentence.
 
 Suggestions:`,
 });
@@ -66,7 +82,12 @@ const styleCheckFlow = ai.defineFlow(
     outputSchema: StyleCheckOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    // Ensure rules always has a defined 'checked' property for the prompt
+    const processedInput = {
+      ...input,
+      rules: input.rules.map(rule => ({ ...rule, checked: !!rule.checked })),
+    };
+    const {output} = await prompt(processedInput);
     return output!;
   }
 );

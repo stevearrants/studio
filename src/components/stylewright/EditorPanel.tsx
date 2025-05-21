@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useRef } from "react"; // Added React import
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,20 +15,13 @@ interface EditorPanelProps {
 }
 
 export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (
-        file.type === "text/plain" ||
-        file.type === "text/markdown" ||
-        file.name.endsWith(".txt") ||
-        file.name.endsWith(".md") ||
-        // Fallback for when browser doesn't set type correctly but extension is .txt or .md
-        (file.type === "application/octet-stream" && (file.name.endsWith(".txt") || file.name.endsWith(".md")))
-      ) {
+      if (file.name.endsWith(".txt") || file.name.endsWith(".md")) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const fileText = e.target?.result as string;
@@ -47,7 +40,6 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
         });
       }
     }
-    // Reset file input to allow uploading the same file again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -82,7 +74,7 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept=".txt,.md,text/plain,text/markdown,application/octet-stream"
+          accept=".txt,.md"
           className="hidden"
         />
       </CardContent>

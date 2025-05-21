@@ -1,13 +1,23 @@
 
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Logo } from "@/components/stylewright/Logo";
 import { EditorPanel } from "@/components/stylewright/EditorPanel";
 import { ControlsAndSuggestionsPanel } from "@/components/stylewright/ControlsAndSuggestionsPanel";
 import { checkTextAction } from "@/lib/actions";
-import type { Suggestion } from "@/types";
+import type { Suggestion, StyleRule } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+
+const defaultStyleRules: StyleRule[] = [
+  { id: 'spelling', label: 'Spelling', description: 'Check for basic spelling errors.', defaultChecked: true },
+  { id: 'grammar', label: 'Grammar', description: 'Check for common grammatical mistakes.', defaultChecked: true },
+  { id: 'clarity', label: 'Clarity', description: 'Ensure text is clear and easy to understand.', defaultChecked: false },
+  { id: 'conciseness', label: 'Conciseness', description: 'Avoid wordiness and unnecessary phrases.', defaultChecked: false },
+  { id: 'tone', label: 'Tone Consistency', description: 'Maintain a consistent tone.', defaultChecked: false },
+  { id: 'avoid-passive-voice', label: 'Avoid Passive Voice', description: 'Prefer active voice for directness.', defaultChecked: false },
+  { id: 'sentence-length', label: 'Sentence Length', description: 'Check for overly long or short sentences.', defaultChecked: false },
+];
 
 
 export default function StyleWrightPage() {
@@ -15,12 +25,24 @@ export default function StyleWrightPage() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [styleRules, setStyleRules] = useState<StyleRule[]>(() => 
+    defaultStyleRules.map(rule => ({...rule, checked: rule.defaultChecked || false }))
+  );
   const [customStyleGuideContent, setCustomStyleGuideContent] = useState<string | null>(null);
   const [customStyleGuideName, setCustomStyleGuideName] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleTextChange = useCallback((newText: string) => {
     setText(newText);
+  }, []);
+
+  const handleToggleRule = useCallback((ruleId: string) => {
+    setStyleRules((prevRules) =>
+      prevRules.map((rule) =>
+        rule.id === ruleId ? { ...rule, checked: !rule.checked } : rule
+      )
+    );
   }, []);
 
   const handleCheckText = useCallback(async () => {
@@ -37,9 +59,10 @@ export default function StyleWrightPage() {
     setError(null);
     setSuggestions([]);
 
-    // Pass an empty array for selectedRuleKeys as the UI for rule selection was removed.
-    // The AI flow will use the entire Vale YAML guide.
-    const result = await checkTextAction(text, [], customStyleGuideContent); 
+    const activeRules = styleRules.filter(rule => rule.checked);
+    // Pass all rules, with their current checked status, to the action.
+    // The AI flow will use the 'checked' property.
+    const result = await checkTextAction(text, styleRules, customStyleGuideContent); 
     
     if (result.error) {
       setError(result.error);
@@ -59,13 +82,13 @@ export default function StyleWrightPage() {
       } else {
          toast({
           title: "All Clear!",
-          description: "No suggestions found based on the current style guide.",
+          description: "No suggestions found based on the current style guide and rules.",
           variant: "default",
         });
       }
     }
     setIsLoading(false);
-  }, [text, customStyleGuideContent, toast]);
+  }, [text, styleRules, customStyleGuideContent, toast]);
 
   const handleDismissSuggestion = useCallback((suggestionId: string) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
@@ -76,15 +99,15 @@ export default function StyleWrightPage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const fileText = e.target?.result as string;
-      // Basic check if content looks like YAML (very naive)
-      if (fileText.includes(":") && (file.name.endsWith(".yml") || file.name.endsWith(".yaml"))) {
+      // For .txt or .md, we just take the content.
+      if (file.name.endsWith(".txt") || file.name.endsWith(".md")) {
         setCustomStyleGuideContent(fileText);
         setCustomStyleGuideName(file.name);
-        toast({ title: "Custom Vale style guide uploaded.", description: file.name });
+        toast({ title: "Custom style guide uploaded.", description: file.name });
       } else {
          toast({ 
-           title: "Invalid File Content or Type",
-           description: "Please upload a valid YAML (.yml, .yaml) file for Vale rules.",
+           title: "Invalid File Type",
+           description: "Please upload a .txt or .md file for the style guide.",
            variant: "destructive"
          });
       }
@@ -98,7 +121,7 @@ export default function StyleWrightPage() {
   const handleRemoveCustomStyleGuide = useCallback(() => {
     setCustomStyleGuideContent(null);
     setCustomStyleGuideName(null);
-    toast({ description: "Custom style guide removed. Using default embedded Vale guide." });
+    toast({ description: "Custom style guide removed. Using predefined rules and embedded guide principles." });
   }, [toast]);
 
 
@@ -119,6 +142,8 @@ export default function StyleWrightPage() {
             isLoading={isLoading}
             error={error}
             onDismissSuggestion={handleDismissSuggestion}
+            styleRules={styleRules}
+            onToggleRule={handleToggleRule}
             customStyleGuideName={customStyleGuideName}
             onUploadCustomStyleGuide={handleUploadCustomStyleGuide}
             onRemoveCustomStyleGuide={handleRemoveCustomStyleGuide}
