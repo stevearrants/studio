@@ -12,34 +12,36 @@ interface CheckTextResult {
 
 async function getEmbeddedStyleGuide(): Promise<string> {
   try {
-    const filePath = path.join(process.cwd(), 'src', 'ai', 'styleguides', 'default-style-guide.md');
+    // Changed to read the YAML file
+    const filePath = path.join(process.cwd(), 'src', 'ai', 'styleguides', 'default-vale-rules.yml');
     const fileContent = await fs.readFile(filePath, 'utf-8');
     return fileContent;
   } catch (error) {
-    console.error("Error reading embedded style guide:", error);
-    // Fallback to a minimal style guide if file reading fails
-    return "Default Style Guide: Focus on clarity and conciseness. Use active voice. Check for spelling and grammar errors.";
+    console.error("Error reading embedded Vale style guide:", error);
+    // Fallback to a minimal message if file reading fails
+    return "Vale.Spelling = YES\n# Default fallback: Focus on basic spelling.";
   }
 }
 
 export async function checkTextAction(
   inputText: string,
-  selectedRules: string[]
+  // selectedRuleKeys would be Vale rule keys if UI for selection existed
+  selectedRuleKeys: string[], 
+  customStyleGuideContent: string | null // Retained for consistency, though UI removed
 ): Promise<CheckTextResult> {
   if (!inputText.trim()) {
     return { suggestions: [], error: null };
   }
   
-  if (selectedRules.length === 0) {
-    return { suggestions: null, error: "Please select at least one style rule to focus on." };
-  }
-
-  const internalStyleGuideText = await getEmbeddedStyleGuide();
+  // If a custom style guide is uploaded, use it. Otherwise, use the embedded one.
+  const styleGuideToUse = customStyleGuideContent ?? await getEmbeddedStyleGuide();
 
   const input: StyleCheckInput = {
     text: inputText,
-    rules: selectedRules,
-    internalStyleGuideText: internalStyleGuideText,
+    // 'rules' now refers to specific Vale rule keys to focus on, if provided.
+    // Currently, page.tsx passes an empty array.
+    rules: selectedRuleKeys, 
+    internalStyleGuideText: styleGuideToUse, // This will be the YAML content
   };
 
   try {

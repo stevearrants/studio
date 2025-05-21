@@ -1,0 +1,54 @@
+# This is a placeholder Vale-compatible YAML style guide.
+# Replace this with your actual Vale rules.
+# See https://vale.sh/docs/topics/styles/ for more information on Vale rule structure.
+
+# Example: Define a style for your organization
+StylesPath: styles
+MinAlertLevel: suggestion # suggestion, warning, or error
+
+Packages:
+  - Google
+  # - Microsoft
+  # - write-good
+
+# You can define global settings or settings for specific syntaxes
+[*]
+# BasedOnStyles are other styles that your style will inherit from.
+BasedOnStyles: Vale, Google
+
+# Example custom rule (this would typically be in a separate file in a 'styles/YourStyleName' directory)
+# For simplicity in this example, we'll show a conceptual structure.
+# Vale.Spelling = YES
+# Vale.Repetition = YES
+# YourStyle.PassiveVoice:
+#   description: "Avoid using passive voice where active voice is clearer."
+#   level: warning
+#   message: "Consider rephrasing in active voice: '%s'."
+#   tokens:
+#     - 'was (?:VBN|VBD)' # Example pattern, actual Vale rules are more complex
+#     - 'is (?:VBN|VBD)'
+#     - 'are (?:VBN|VBD)'
+#     - 'been (?:VBN|VBD)'
+
+# Rule for checking sentence length (conceptual example)
+# YourStyle.SentenceLength:
+#   level: suggestion
+#   message: "Sentence is too long (%s words). Consider breaking it up."
+#   condition: '$length > 25' # Vale uses its own expression language for conditions
+
+# It's common to organize actual rules into subdirectories within a "styles" folder,
+# and then reference them here. For instance, if you have styles/MyOrg/Acronyms.yml,
+# you might have:
+# MyOrg.Acronyms = YES
+#
+# And MyOrg/Acronyms.yml would contain:
+# extends: substitution
+# message: "Spell out '%s' on first use, followed by the acronym in parentheses."
+# level: warning
+# ignorecase: true
+# swap:
+#   CRM: Customer Relationship Management
+#   API: Application Programming Interface
+
+# For the purpose of this application, the AI will receive this entire YAML content
+# and will be instructed to interpret it as Vale rules to check the user's text.

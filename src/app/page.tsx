@@ -6,14 +6,12 @@ import { Logo } from "@/components/stylewright/Logo";
 import { EditorPanel } from "@/components/stylewright/EditorPanel";
 import { ControlsAndSuggestionsPanel } from "@/components/stylewright/ControlsAndSuggestionsPanel";
 import { checkTextAction } from "@/lib/actions";
-import type { Suggestion } from "@/types"; // StyleRule removed as it's no longer used here
+import type { Suggestion } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
-// predefinedStyleRules is removed as the configuration area is being removed.
 
 export default function StyleWrightPage() {
   const [text, setText] = useState<string>("");
-  // selectedRules state and its initialization logic are removed.
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,16 +19,11 @@ export default function StyleWrightPage() {
   const [customStyleGuideName, setCustomStyleGuideName] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // useEffect for defaultSelected rules is removed.
-
   const handleTextChange = useCallback((newText: string) => {
     setText(newText);
   }, []);
 
-  // handleSelectedRulesChange is removed.
-
   const handleCheckText = useCallback(async () => {
-    // Check for selectedRules.length is removed as rules are no longer user-selectable.
     if (!text.trim()) {
        toast({
         title: "No text provided",
@@ -44,8 +37,8 @@ export default function StyleWrightPage() {
     setError(null);
     setSuggestions([]);
 
-    // activeRuleLabels will now be an empty array as specific rules are not selected by the user.
-    // The AI flow is designed to use the entire embedded style guide if no specific rules are passed.
+    // Pass an empty array for selectedRuleKeys as the UI for rule selection was removed.
+    // The AI flow will use the entire Vale YAML guide.
     const result = await checkTextAction(text, [], customStyleGuideContent); 
     
     if (result.error) {
@@ -66,7 +59,7 @@ export default function StyleWrightPage() {
       } else {
          toast({
           title: "All Clear!",
-          description: "No suggestions found based on the current criteria.",
+          description: "No suggestions found based on the current style guide.",
           variant: "default",
         });
       }
@@ -83,9 +76,18 @@ export default function StyleWrightPage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const fileText = e.target?.result as string;
-      setCustomStyleGuideContent(fileText);
-      setCustomStyleGuideName(file.name);
-      toast({ title: "Custom style guide uploaded.", description: file.name });
+      // Basic check if content looks like YAML (very naive)
+      if (fileText.includes(":") && (file.name.endsWith(".yml") || file.name.endsWith(".yaml"))) {
+        setCustomStyleGuideContent(fileText);
+        setCustomStyleGuideName(file.name);
+        toast({ title: "Custom Vale style guide uploaded.", description: file.name });
+      } else {
+         toast({ 
+           title: "Invalid File Content or Type",
+           description: "Please upload a valid YAML (.yml, .yaml) file for Vale rules.",
+           variant: "destructive"
+         });
+      }
     };
     reader.onerror = () => {
       toast({ title: "Error reading style guide file.", variant: "destructive" });
@@ -96,7 +98,7 @@ export default function StyleWrightPage() {
   const handleRemoveCustomStyleGuide = useCallback(() => {
     setCustomStyleGuideContent(null);
     setCustomStyleGuideName(null);
-    toast({ description: "Custom style guide removed. Using default guide." });
+    toast({ description: "Custom style guide removed. Using default embedded Vale guide." });
   }, [toast]);
 
 
@@ -112,7 +114,6 @@ export default function StyleWrightPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
           <EditorPanel text={text} onTextChange={handleTextChange} />
           <ControlsAndSuggestionsPanel
-            // Props related to styleRules and selectedRules are removed
             onCheckText={handleCheckText}
             suggestions={suggestions}
             isLoading={isLoading}
