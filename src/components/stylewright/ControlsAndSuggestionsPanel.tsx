@@ -15,7 +15,7 @@ interface ControlsAndSuggestionsPanelProps {
   isLoading: boolean;
   error: string | null;
   onDismissSuggestion: (suggestionId: string) => void;
-  onSuggestionClick: (offendingText?: string) => void;
+  // onSuggestionClick is removed
 }
 
 export function ControlsAndSuggestionsPanel({
@@ -23,7 +23,7 @@ export function ControlsAndSuggestionsPanel({
   isLoading,
   error,
   onDismissSuggestion,
-  onSuggestionClick,
+  // onSuggestionClick, // Removed
 }: ControlsAndSuggestionsPanelProps) {
   return (
     <div className="space-y-6">
@@ -52,14 +52,14 @@ export function ControlsAndSuggestionsPanel({
             </p>
           )}
           {!isLoading && !error && suggestions.length > 0 && (
-            <ScrollArea className="h-[calc(20rem+10vh)] sm:h-[calc(20rem+15vh)] md:h-[calc(20rem+20vh)] pr-1"> {/* Adjusted height */}
+            <ScrollArea className="h-[calc(20rem+10vh)] sm:h-[calc(20rem+15vh)] md:h-[calc(20rem+20vh)] pr-1">
               <div className="space-y-3">
                 {suggestions.map((suggestion) => (
                   <SuggestionItem
                     key={suggestion.id}
                     suggestion={suggestion}
                     onDismiss={onDismissSuggestion}
-                    onClick={suggestion.offendingText ? () => onSuggestionClick(suggestion.offendingText) : undefined}
+                    // onClick prop is removed
                   />
                 ))}
               </div>

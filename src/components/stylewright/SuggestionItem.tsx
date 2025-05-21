@@ -10,41 +10,32 @@ import { cn } from "@/lib/utils";
 interface SuggestionItemProps {
   suggestion: Suggestion;
   onDismiss: (suggestionId: string) => void;
-  onClick?: () => void; // Optional onClick handler
+  // onClick?: () => void; // Removed
 }
 
-export function SuggestionItem({ suggestion, onDismiss, onClick }: SuggestionItemProps) {
+export function SuggestionItem({ suggestion, onDismiss }: SuggestionItemProps) {
   return (
     <Card
       className={cn(
-        "bg-card border-border transition-all duration-300 ease-in-out hover:shadow-md",
-        onClick && "cursor-pointer hover:border-primary/50"
+        "bg-card border-border transition-all duration-300 ease-in-out hover:shadow-md"
+        // onClick && "cursor-pointer hover:border-primary/50" // Styling for click removed
       )}
-      onClick={onClick} // Apply onClick to the Card
-      onKeyDown={(e) => { // Allow keyboard activation
-        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      tabIndex={onClick ? 0 : -1} // Make it focusable if clickable
-      role={onClick ? "button" : undefined}
-      aria-pressed={onClick ? "false" : undefined} // Semantics for a button-like card
+      // onClick, onKeyDown, tabIndex, role, aria-pressed removed
     >
       <CardContent className="p-4 flex items-start justify-between gap-4">
         <div className="flex-grow space-y-1">
           <p className="text-sm text-card-foreground">{suggestion.text}</p>
-          {suggestion.offendingText && (
+          {/* {suggestion.offendingText && ( // offendingText display removed
              <p className="text-xs text-muted-foreground italic truncate">
                Context: &ldquo;...{suggestion.offendingText.length > 50 ? suggestion.offendingText.substring(0, 47) + "..." : suggestion.offendingText}...&rdquo;
              </p>
-          )}
+          )} */}
         </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={(e) => {
-            e.stopPropagation(); // Prevent Card's onClick when dismissing
+            // e.stopPropagation(); // No longer needed as card is not clickable
             onDismiss(suggestion.id);
           }}
           className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0"

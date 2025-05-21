@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import { Logo } from "@/components/stylewright/Logo";
 import { EditorPanel } from "@/components/stylewright/EditorPanel";
 import { ControlsAndSuggestionsPanel } from "@/components/stylewright/ControlsAndSuggestionsPanel";
@@ -16,7 +16,7 @@ export default function StyleWrightPage() {
   const [error, setError] = useState<string | null>(null);
   const [checkMode, setCheckMode] = useState<CheckMode>("spell_grammar_only");
   const { toast } = useToast();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // textareaRef is removed
 
   const handleTextChange = useCallback((newText: string) => {
     setText(newText);
@@ -74,22 +74,7 @@ export default function StyleWrightPage() {
     [toast]
   );
 
-  const handleSuggestionClick = useCallback((offendingText?: string) => {
-    if (offendingText && textareaRef.current) {
-      const fullText = textareaRef.current.value;
-      const index = fullText.indexOf(offendingText);
-      if (index !== -1) {
-        textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(index, index + offendingText.length);
-      } else {
-        toast({
-          title: "Text not found",
-          description: "The specific text snippet for this suggestion could not be found in the editor. It might have been changed.",
-          variant: "default"
-        })
-      }
-    }
-  }, [toast]);
+  // handleSuggestionClick is removed
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -102,7 +87,7 @@ export default function StyleWrightPage() {
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
           <EditorPanel
-            ref={textareaRef} 
+            // ref is removed
             text={text}
             onTextChange={handleTextChange}
             onCheckText={handleCheckText}
@@ -115,7 +100,7 @@ export default function StyleWrightPage() {
             isLoading={isLoading}
             error={error}
             onDismissSuggestion={handleDismissSuggestion}
-            onSuggestionClick={handleSuggestionClick} 
+            // onSuggestionClick is removed
           />
         </div>
       </main>

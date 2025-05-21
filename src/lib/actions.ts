@@ -51,7 +51,7 @@ export async function checkTextAction(
 
   const input: StyleCheckInput = {
     text: inputText,
-    styleGuideContext: styleGuideContent, // Always pass, AI prompt will decide to use it
+    styleGuideContext: styleGuideContent, 
     checkMode: checkMode,
   };
 
@@ -60,7 +60,7 @@ export async function checkTextAction(
     const suggestions: Suggestion[] = result.suggestions.map((item, index) => ({
       id: `suggestion-${Date.now()}-${index}`,
       text: item.suggestionText,
-      offendingText: item.offendingText,
+      // offendingText: item.offendingText, // Removed
     }));
     return { suggestions, error: null };
   } catch (e) {
