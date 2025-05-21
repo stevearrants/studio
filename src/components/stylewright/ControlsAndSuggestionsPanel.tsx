@@ -40,17 +40,23 @@ export function ControlsAndSuggestionsPanel({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Accept .txt, .md, .yml, .yaml. Content should be Vale-compatible YAML.
       if (
         file.name.endsWith(".yml") ||
         file.name.endsWith(".yaml") ||
-        file.type === "application/x-yaml" || // Common MIME types for YAML
-        file.type === "text/yaml"
+        file.name.endsWith(".txt") ||
+        file.name.endsWith(".md") ||
+        file.type === "application/x-yaml" || 
+        file.type === "text/yaml" ||
+        file.type === "text/plain" || // Allow text/plain for .txt or .md containing YAML
+        file.type === "text/markdown" || // Allow text/markdown for .md containing YAML
+        file.type === "application/octet-stream" // Fallback for unknown types
       ) {
         onUploadCustomStyleGuide(file);
       } else {
         toast({
           title: "Invalid file type for Vale style guide.",
-          description: "Please upload a .yml or .yaml file.",
+          description: "Please upload a .txt, .md, .yml, or .yaml file with Vale-compatible YAML content.",
           variant: "destructive",
         });
       }
@@ -72,8 +78,8 @@ export function ControlsAndSuggestionsPanel({
         <CardHeader>
           <CardTitle className="text-xl">Custom Vale Style Guide (Optional)</CardTitle>
           <CardDescription>
-            Upload your own Vale-compatible .yml or .yaml style guide.
-            If no custom guide is uploaded, the application's default embedded Vale guide will be used.
+            Upload your own Vale-compatible style guide (as a .txt, .md, .yml, or .yaml file).
+            The content must be YAML. If no custom guide is uploaded, the default embedded Vale guide is used.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -90,14 +96,14 @@ export function ControlsAndSuggestionsPanel({
           ) : (
             <Button onClick={handleUploadClick} variant="outline" className="w-full">
               <Upload className="mr-2 h-4 w-4" />
-              Upload Vale Guide (.yml, .yaml)
+              Upload Vale Guide (.txt, .md, .yml, .yaml)
             </Button>
           )}
           <Input
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept=".yml,.yaml,application/x-yaml,text/yaml"
+            accept=".txt,.md,.yml,.yaml,text/plain,text/markdown,application/x-yaml,text/yaml,application/octet-stream"
             className="hidden"
           />
         </CardContent>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -23,9 +24,13 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
       if (
         file.type === "text/plain" ||
         file.type === "text/markdown" ||
-        file.type === "application/octet-stream" || // Added for robustness
+        file.type === "application/x-yaml" ||
+        file.type === "text/yaml" ||
+        file.type === "application/octet-stream" || // For robustness
         file.name.endsWith(".md") ||
-        file.name.endsWith(".txt")
+        file.name.endsWith(".txt") ||
+        file.name.endsWith(".yml") ||
+        file.name.endsWith(".yaml")
       ) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -40,7 +45,7 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
       } else {
         toast({
           title: "Invalid file type.",
-          description: "Please upload a .txt or .md file.",
+          description: "Please upload a .txt, .md, or .yaml/.yml file.",
           variant: "destructive",
         });
       }
@@ -74,13 +79,13 @@ export function EditorPanel({ text, onTextChange }: EditorPanelProps) {
         </div>
         <Button onClick={handleUploadClick} variant="outline" className="w-full sm:w-auto">
           <Upload className="mr-2 h-4 w-4" />
-          Upload File (.txt, .md)
+          Upload File (.txt, .md, .yml, .yaml)
         </Button>
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept=".txt,.md,text/plain,text/markdown,application/octet-stream" // Made consistent with style guide uploader
+          accept=".txt,.md,.yml,.yaml,text/plain,text/markdown,application/x-yaml,text/yaml,application/octet-stream"
           className="hidden"
         />
       </CardContent>
