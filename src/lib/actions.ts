@@ -1,31 +1,45 @@
-"use server";
+'use server';
 
 import { styleCheck, type StyleCheckInput } from "@/ai/flows/stylewright-style-check";
 import type { Suggestion } from "@/types";
+import fs from 'fs/promises';
+import path from 'path';
 
 interface CheckTextResult {
   suggestions: Suggestion[] | null;
   error: string | null;
 }
 
+async function getEmbeddedStyleGuide(): Promise<string> {
+  try {
+    const filePath = path.join(process.cwd(), 'src', 'ai', 'styleguides', 'default-style-guide.md');
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    return fileContent;
+  } catch (error) {
+    console.error("Error reading embedded style guide:", error);
+    // Fallback to a minimal style guide if file reading fails
+    return "Default Style Guide: Focus on clarity and conciseness. Use active voice. Check for spelling and grammar errors.";
+  }
+}
+
 export async function checkTextAction(
   inputText: string,
-  selectedRules: string[],
-  customStyleGuideText: string | null
+  selectedRules: string[]
 ): Promise<CheckTextResult> {
   if (!inputText.trim()) {
     return { suggestions: [], error: null };
   }
-  // It's okay if no specific rules are selected if a custom style guide is provided.
-  if (selectedRules.length === 0 && !customStyleGuideText) {
-    return { suggestions: null, error: "Please select at least one style rule or upload a custom style guide." };
+  
+  if (selectedRules.length === 0) {
+    return { suggestions: null, error: "Please select at least one style rule to focus on." };
   }
+
+  const internalStyleGuideText = await getEmbeddedStyleGuide();
 
   const input: StyleCheckInput = {
     text: inputText,
-    styleGuide: "Custom StyleWright Guide", 
     rules: selectedRules,
-    customStyleGuideText: customStyleGuideText ?? undefined,
+    internalStyleGuideText: internalStyleGuideText,
   };
 
   try {

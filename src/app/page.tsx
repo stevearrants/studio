@@ -28,8 +28,6 @@ export default function StyleWrightPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const [customStyleGuideText, setCustomStyleGuideText] = useState<string | null>(null);
-  const [customStyleGuideName, setCustomStyleGuideName] = useState<string | null>(null);
 
   useEffect(() => {
     const defaultSelected = predefinedStyleRules
@@ -48,39 +46,11 @@ export default function StyleWrightPage() {
     );
   }, []);
 
-  const handleUploadCustomStyleGuide = useCallback((file: File) => {
-    if (file.type === "text/plain" || file.type === "text/markdown" || file.type === "application/octet-stream" || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const fileText = e.target?.result as string;
-        setCustomStyleGuideText(fileText);
-        setCustomStyleGuideName(file.name);
-        toast({ title: "Custom style guide loaded successfully.", description: `Using ${file.name}.` });
-      };
-      reader.onerror = () => {
-        toast({ title: "Error reading style guide file.", variant: "destructive" });
-      }
-      reader.readAsText(file);
-    } else {
-      toast({
-        title: "Invalid file type for style guide.",
-        description: "Please upload a .txt or .md file.",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
-
-  const handleRemoveCustomStyleGuide = useCallback(() => {
-    setCustomStyleGuideText(null);
-    setCustomStyleGuideName(null);
-    toast({ description: "Custom style guide removed." });
-  }, [toast]);
-
   const handleCheckText = useCallback(async () => {
-    if (selectedRules.length === 0 && !customStyleGuideText) {
+    if (selectedRules.length === 0) {
       toast({
-        title: "No rules or custom guide",
-        description: "Please select at least one style rule or upload a custom style guide.",
+        title: "No rules selected",
+        description: "Please select at least one style area to focus on.",
         variant: "destructive",
       });
       return;
@@ -102,7 +72,8 @@ export default function StyleWrightPage() {
       .filter(rule => selectedRules.includes(rule.id))
       .map(rule => rule.label);
 
-    const result = await checkTextAction(text, activeRuleLabels, customStyleGuideText);
+    // Pass only text and activeRuleLabels, customStyleGuideText is handled by the action internally
+    const result = await checkTextAction(text, activeRuleLabels); 
     
     if (result.error) {
       setError(result.error);
@@ -128,7 +99,7 @@ export default function StyleWrightPage() {
       }
     }
     setIsLoading(false);
-  }, [text, selectedRules, customStyleGuideText, toast]);
+  }, [text, selectedRules, toast]);
 
   const handleDismissSuggestion = useCallback((suggestionId: string) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
@@ -155,9 +126,7 @@ export default function StyleWrightPage() {
             isLoading={isLoading}
             error={error}
             onDismissSuggestion={handleDismissSuggestion}
-            customStyleGuideName={customStyleGuideName}
-            onUploadCustomStyleGuide={handleUploadCustomStyleGuide}
-            onRemoveCustomStyleGuide={handleRemoveCustomStyleGuide}
+            // Removed props related to custom style guides
           />
         </div>
       </main>
