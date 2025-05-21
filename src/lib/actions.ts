@@ -1,7 +1,7 @@
 'use server';
 
 import { styleCheck, type StyleCheckInput } from "@/ai/flows/stylewright-style-check";
-import type { Suggestion, StyleRule } from "@/types";
+import type { Suggestion } from "@/types"; // StyleRule might be unused now
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -17,31 +17,24 @@ async function getEmbeddedStyleGuide(): Promise<string> {
     return fileContent;
   } catch (error) {
     console.error("Error reading embedded style guide:", error);
-    return "Default fallback: Focus on clarity and conciseness.";
+    // Provide a fallback style guide content if the file is missing or unreadable
+    return "Default Fallback Style Guide: Ensure clarity, conciseness, and correct grammar. Avoid jargon.";
   }
 }
 
 export async function checkTextAction(
-  inputText: string,
-  activeStyleRules: StyleRule[],
-  customStyleGuideContent: string | null
+  inputText: string
 ): Promise<CheckTextResult> {
   if (!inputText.trim()) {
     return { suggestions: [], error: null };
   }
   
-  const styleGuideToUseForCustomText = customStyleGuideContent ?? await getEmbeddedStyleGuide();
+  const embeddedStyleGuideContent = await getEmbeddedStyleGuide();
 
   const input: StyleCheckInput = {
     text: inputText,
-    rules: activeStyleRules, // These are the predefined rules with their checked status
-    customStyleGuideText: customStyleGuideContent, // This is the user-uploaded guide, if any
+    styleGuideContext: embeddedStyleGuideContent,
   };
-
-  // If no custom guide is uploaded, the prompt logic will use the 'rules' (predefined ones) 
-  // with the embedded guide text (which isn't directly passed to the AI as customStyleGuideText 
-  // but its principles are what the predefined rules should reflect).
-  // The AI prompt handles whether customStyleGuideText is null.
 
   try {
     const result = await styleCheck(input);
