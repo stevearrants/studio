@@ -1,21 +1,18 @@
-# Default StyleWright Guide
+<!-- This is the StyleWright application's built-in style guide. -->
+<!-- Please replace the content of this file with your custom style guide. -->
 
-This is the StyleWright application's built-in style guide.
+<!-- Example Structure (you can replace all of this):
+# My Custom Style Guide
 
-## Key Principles:
+## Section 1: Tone of Voice
+- Be friendly and approachable.
+- Maintain a professional demeanor.
 
-- **Clarity:** Write in a clear and easy-to-understand manner.
-- **Conciseness:** Avoid unnecessary words and be direct.
-- **Consistency:** Maintain consistent terminology, tone, and formatting.
+## Section 2: Formatting Rules
+- Use bullet points for lists of three or more items.
+- Headings should be in Title Case.
 
-## Specific Rules (Examples):
-
-- **Active Voice:** Prefer active voice over passive voice.
-  - *Example:* "The team developed the feature." (Active) vs. "The feature was developed by the team." (Passive)
-- **Simple Language:** Use simple words and avoid jargon where possible.
-  - *Example:* Use "use" instead of "utilize."
-- **Abbreviations:** Define abbreviations on first use.
-- **Numbers:** Spell out numbers one through nine; use numerals for 10 and above.
-- **Oxford Comma:** Consistently use or omit the Oxford comma based on a defined standard (e.g., always use it).
-
-*You can expand this guide with your specific rules and guidelines.*
+## Section 3: Word Choice
+- Prefer "customer" over "user".
+- Avoid using jargon where possible.
+-->
