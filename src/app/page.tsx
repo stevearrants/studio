@@ -6,7 +6,7 @@ import { Logo } from "@/components/stylewright/Logo";
 import { EditorPanel } from "@/components/stylewright/EditorPanel";
 import { ControlsAndSuggestionsPanel } from "@/components/stylewright/ControlsAndSuggestionsPanel";
 import { checkTextAction } from "@/lib/actions";
-import type { Suggestion } from "@/types";
+import type { Suggestion, CheckMode } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 export default function StyleWrightPage() {
@@ -14,11 +14,16 @@ export default function StyleWrightPage() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkMode, setCheckMode] = useState<CheckMode>("spell_grammar_only");
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleTextChange = useCallback((newText: string) => {
     setText(newText);
+  }, []);
+
+  const handleCheckModeChange = useCallback((mode: CheckMode) => {
+    setCheckMode(mode);
   }, []);
 
   const handleCheckText = useCallback(async () => {
@@ -33,10 +38,8 @@ export default function StyleWrightPage() {
 
     setIsLoading(true);
     setError(null);
-    // Keep existing suggestions while loading new ones if desired, or clear them:
-    // setSuggestions([]); // Uncomment to clear suggestions immediately
-
-    const result = await checkTextAction(text);
+    
+    const result = await checkTextAction(text, checkMode);
 
     if (result.error) {
       setError(result.error);
@@ -45,25 +48,23 @@ export default function StyleWrightPage() {
         description: result.error,
         variant: "destructive",
       });
-      setSuggestions([]); // Clear suggestions on error
+      setSuggestions([]); 
     } else if (result.suggestions) {
       setSuggestions(result.suggestions);
       if (result.suggestions.length > 0) {
         toast({
           title: "Suggestions Ready",
           description: `Found ${result.suggestions.length} suggestion(s).`,
-          variant: "default",
         });
       } else {
         toast({
           title: "All Clear!",
-          description: "No suggestions found based on the embedded style guide.",
-          variant: "default",
+          description: "No issues found based on the selected check mode.",
         });
       }
     }
     setIsLoading(false);
-  }, [text, toast]);
+  }, [text, checkMode, toast]);
 
   const handleDismissSuggestion = useCallback(
     (suggestionId: string) => {
@@ -101,25 +102,27 @@ export default function StyleWrightPage() {
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
           <EditorPanel
-            ref={textareaRef} // Pass the ref to EditorPanel
+            ref={textareaRef} 
             text={text}
             onTextChange={handleTextChange}
             onCheckText={handleCheckText}
             isLoading={isLoading}
+            currentCheckMode={checkMode}
+            onCheckModeChange={handleCheckModeChange}
           />
           <ControlsAndSuggestionsPanel
             suggestions={suggestions}
             isLoading={isLoading}
             error={error}
             onDismissSuggestion={handleDismissSuggestion}
-            onSuggestionClick={handleSuggestionClick} // Pass the click handler
+            onSuggestionClick={handleSuggestionClick} 
           />
         </div>
       </main>
       <footer className="py-6 md:px-8 md:py-0 border-t">
         <div className="container flex flex-col items-center justify-center gap-4 md:h-20 md:flex-row">
           <p className="text-balance text-center text-sm leading-loose text-muted-foreground">
-            Built with Firebase Studio & Next.js. &copy; {new Date().getFullYear()} The Old Tech Writer.
+            Built with Firebase Studio &amp; Next.js. &copy; {new Date().getFullYear()} The Old Tech Writer.
           </p>
         </div>
       </footer>
